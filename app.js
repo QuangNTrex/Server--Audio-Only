@@ -42,11 +42,16 @@ app.use("/musics/:musicId", (req, res, next) => {
   console.log("check on end");
   stream.on("end", () => {
     console.log("in next");
+    console.log(__dirname);
+    console.log(
+      fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3"))
+    );
     next();
   });
 });
 
 app.use("/musics", express.static(path.join(__dirname, "musics")));
+app.use("/music-folder", express.static(path.join(__dirname, "musics")));
 
 app.use("/test", (req, res, next) => {});
 
