@@ -15,7 +15,6 @@ app.use("/music/:videoId", (req, res, next) => {
 
   res.set({
     "Content-Type": "audio/mpeg",
-    "Transfer-Encoding": "chunked",
   });
 
   stream.pipe(res);
