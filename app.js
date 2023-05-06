@@ -21,7 +21,8 @@ app.use("/musics/:musicId", (req, res, next) => {
   console.log("in add setTimeout");
   setTimeout(
     ((musicId) => {
-      fs.unlinkSync(path.join(__dirname, "musics", musicId + ".mp3"));
+      if (fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3")))
+        fs.unlinkSync(path.join(__dirname, "musics", musicId + ".mp3"));
     }).bind(null, musicId),
     1000 * 60 * 10
   );
