@@ -13,10 +13,12 @@ app.use("/musics/:musicId", (req, res, next) => {
   const musicId = req.params.musicId.split(".")[0];
   console.log(musicId);
 
+  console.log("in check exist file");
   if (fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3")))
     return next();
 
   // delete after 10 minutes
+  console.log("in add setTimeout");
   setTimeout(
     ((musicId) => {
       fs.unlinkSync(path.join(__dirname, "musics", musicId + ".mp3"));
@@ -24,17 +26,23 @@ app.use("/musics/:musicId", (req, res, next) => {
     1000 * 60 * 10
   );
 
+  console.log("in create stream music");
   const stream = ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
     filter: "audioonly",
     quality: "highestaudio",
     format: "mp3",
   });
 
+  console.log("pipe");
   stream.pipe(
     fs.createWriteStream(path.join(__dirname, "musics", musicId + ".mp3"))
   );
 
-  stream.on("end", () => next());
+  console.log("check on end");
+  stream.on("end", () => {
+    console.log("in next");
+    next();
+  });
 });
 
 app.use("/musics", express.static(path.join(__dirname, "musics")));
