@@ -13,9 +13,7 @@ app.use("/music/:videoId", (req, res, next) => {
   const url = `https://www.youtube.com/watch?v=${videoId}`;
   const stream = ytdl(url, { filter: "audioonly", quality: "highestaudio" });
 
-  res.set({
-    "Content-Type": "audio/mpeg",
-  });
+  res.setHeader("Content-Type", "audio/mpeg");
 
   stream.pipe(res);
 
