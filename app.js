@@ -1,6 +1,8 @@
 const express = require("express");
 const ytdl = require("ytdl-core");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 
@@ -21,6 +23,10 @@ app.use("/music/:videoId", (req, res, next) => {
     console.log("end");
   });
 });
+
+app.use("/musics", express.static(path.join(__dirname, "musics")));
+
+app.use("/test", (req, res, next) => {});
 
 app.listen(8888, () => {
   console.log("connected!");
