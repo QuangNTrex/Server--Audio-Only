@@ -40,7 +40,7 @@ app.use("/musics/:musicId", (req, res, next) => {
   );
 
   console.log("check on end");
-  stream.on("end", () => {
+  stream.on("close", () => {
     console.log("in next");
     console.log(__dirname);
     console.log(
