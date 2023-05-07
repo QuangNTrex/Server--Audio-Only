@@ -40,7 +40,8 @@ app.use("/musics/:musicId", (req, res, next) => {
   );
 
   console.log("check on end");
-  stream.on("close", () => {
+  stream.on("end", () => {
+    stream.destroy();
     console.log("in next");
     console.log(__dirname);
     console.log(
@@ -53,7 +54,9 @@ app.use("/musics/:musicId", (req, res, next) => {
 app.use("/musics", express.static(path.join(__dirname, "musics")));
 app.use("/music-folder", express.static(path.join(__dirname, "musics")));
 
-app.use("/test", (req, res, next) => {});
+app.use("/test", (req, res, next) => {
+  res.send({ result: { text: "oke" } });
+});
 
 app.listen(8888, () => {
   console.log("connected!");
