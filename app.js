@@ -24,7 +24,7 @@ app.use("/musics/:musicId", (req, res, next) => {
       if (fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3")))
         fs.unlinkSync(path.join(__dirname, "musics", musicId + ".mp3"));
     }).bind(null, musicId),
-    1000 * 60 * 10
+    1000 * 40
   );
 
   console.log("in create stream music");
@@ -45,6 +45,7 @@ app.use("/musics/:musicId", (req, res, next) => {
     console.log("in next");
     console.log(__dirname);
     console.log(
+      "is have file:",
       fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3"))
     );
     next();
