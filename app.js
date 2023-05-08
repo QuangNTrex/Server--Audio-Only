@@ -3,9 +3,21 @@ const ytdl = require("ytdl-core");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
-const ffmpeg = require("ffmpeg");
 const { exec } = require("child_process");
 const app = express();
+
+// const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+// (async () => {
+//   while (true === true) {
+//     const used = process.memoryUsage();
+//     for (let key in used) {
+//       console.log(
+//         `${key} ${Math.round((used[key] / 1024 / 1024) * 100) / 100} MB`
+//       );
+//     }
+//     await delay(10000);
+//   }
+// })();
 
 const mapCheck = new Map();
 
@@ -17,44 +29,43 @@ async function convertToM4a(mp3File, m4aFile, res, startTime) {
     `ffmpeg -i ${__dirname.replace(/\\/g, "/") + `/musics/${mp3File}`} ${
       __dirname.replace(/\\/g, "/") + `/musics/${m4aFile}`
     }`,
-    (err, std) => {
-      console.log(err);
-      console.log("completed convert");
+    (err) => {
       if (err)
         res.send({
           error: { time: (Date.now() - startTime) / 1000, message: err },
         });
-      else
+      else {
         res.send({
           result: {
             time: (Date.now() - startTime) / 1000,
             message: "converted",
+            url: `https://audio-only.onrender.com/musics/${m4aFile}`,
           },
         });
+        mapCheck.set(m4aFile, true);
+        if (fs.existsSync(path.join(__dirname, "musics", mp3File)))
+          fs.unlinkSync(path.join(__dirname, "musics", mp3File));
+        mapCheck.delete(mp3File);
+      }
     }
   );
 }
 
-app.use("/musics/:musicPath", (req, res, next) => {
+app.use("/music-check/:musicPath", (req, res, next) => {
   const startTime = Date.now();
   const musicPath = req.params.musicPath;
   const musicId = req.params.musicPath.split(".")[0];
   const format = req.params.musicPath.split(".")[1];
   console.log(musicId);
 
-  console.log("in check exist file");
-  if (fs.existsSync(path.join(__dirname, "musics", musicPath)))
-    return res.send({ result: { message: "converted" } });
-
-  setTimeout(
-    ((musicId, musicPath) => {
-      if (fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3")))
-        fs.unlinkSync(path.join(__dirname, "musics", musicId + ".mp3"));
-      if (fs.existsSync(path.join(__dirname, "musics", musicPath)))
-        fs.unlinkSync(path.join(__dirname, "musics", musicPath));
-    }).bind(null, musicId, musicPath),
-    1000 * 60 * 5
-  );
+  if (mapCheck.has(musicPath))
+    return res.send({
+      result: {
+        time: (Date.now() - startTime) / 1000,
+        message: "converted",
+        url: `https://audio-only.onrender.com/musics/${musicPath}`,
+      },
+    });
 
   const stream = ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
     filter: "audioonly",
@@ -65,20 +76,40 @@ app.use("/musics/:musicPath", (req, res, next) => {
     fs.createWriteStream(path.join(__dirname, "musics", musicId + ".mp3"))
   );
 
-  console.log("check on end");
+  stream.on("error", (err) => {
+    console.log(err);
+  });
+
   stream.on("end", () => {
     stream.destroy();
-    if (format !== "mp3") {
+    mapCheck.set(musicId + ".mp3", true);
+
+    if (format !== "mp3")
       convertToM4a(musicId + ".mp3", musicPath, res, startTime);
-      console.log("after convert");
-    }
+    else
+      return res.send({
+        result: {
+          time: (Date.now() - startTime) / 1000,
+          message: "converted",
+          url: `https://audio-only.onrender.com/musics/${musicPath}`,
+        },
+      });
   });
 });
 
-app.use("/music-folder", express.static(path.join(__dirname, "musics")));
+app.use("/musics", express.static(path.join(__dirname, "musics")));
 
 app.use("/test", (req, res, next) => {
   res.send({ result: { text: "oke" } });
+});
+
+app.use("/delete", (req, res) => {
+  mapCheck.forEach((value, key) => {
+    console.log(key, value);
+    if (fs.existsSync(path.join(__dirname, "musics", key)))
+      fs.unlinkSync(path.join(__dirname, "musics", key));
+  });
+  res.send({ result: "oke" });
 });
 
 app.listen(8888, () => {
