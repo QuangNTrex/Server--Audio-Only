@@ -3,19 +3,24 @@ const ytdl = require("ytdl-core");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
-const ffmpeg = require("fluent-ffmpeg");
+const mp3ToAac = require("mp3-to-aac").mp3ToAac;
+const ffmpeg = require("ffmpeg");
+const { exec } = require("child_process");
+var sox = require("sox");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 async function convertToM4a(mp3FilePath, m4aFilePath) {
-  ffmpeg(mp3FilePath)
-    .format("m4a")
-    .on("error", (err) => console.error(err))
-    .on("end", () => console.log("Finished!"))
-    .save(m4aFilePath);
-  console.log("before convert");
+  exec(
+    `ffmpeg -i ${__dirname.replace(/\\/g, "/") + `/musics/${musicInputFile}`} ${
+      __dirname.replace(/\\/g, "/") + `/musics/${musicOutputFile}`
+    }`,
+    (err, std) => {
+      console.log(err);
+    }
+  );
 }
 
 app.use("/musics/:musicPath", (req, res, next) => {
@@ -43,30 +48,27 @@ app.use("/musics/:musicPath", (req, res, next) => {
   const stream = ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
     filter: "audioonly",
     quality: "highestaudio",
-    format: "mp3",
   });
 
   console.log("pipe");
-  stream.pipe(
-    fs.createWriteStream(path.join(__dirname, "musics", musicId + ".mp3"))
-  );
+  stream.pipe(fs.createWriteStream(path.join(__dirname, "musics", musicPath)));
 
   console.log("check on end");
   stream.on("end", () => {
     stream.destroy();
-    if (format !== "mp3") {
-      convertToM4a(
-        path.join(__dirname, "musics", musicId + ".mp3"),
-        path.join(__dirname, "musics", musicPath)
-      );
-      console.log("after convert");
-    }
+    // if (format !== "mp3") {
+    //   convertToM4a(
+    //     path.join(__dirname, "musics", musicId + ".mp3"),
+    //     path.join(__dirname, "musics", musicPath)
+    //   );
+    //   console.log("after convert");
+    // }
 
     console.log("in next");
     console.log(__dirname);
     console.log(
       "is have file:",
-      fs.existsSync(path.join(__dirname, "musics", musicId + ".mp3"))
+      fs.existsSync(path.join(__dirname, "musics", musicPath))
     );
     next();
   });
