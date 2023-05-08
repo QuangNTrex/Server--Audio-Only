@@ -63,12 +63,12 @@ app.use("/musics/:musicPath", (req, res, next) => {
       console.log("after convert");
     }
 
-    console.log("in next");
-    console.log(__dirname);
-    console.log(
-      "is have file:",
-      fs.existsSync(path.join(__dirname, "musics", musicPath))
-    );
+    // console.log("in next");
+    // console.log(__dirname);
+    // console.log(
+    //   "is have file:",
+    //   fs.existsSync(path.join(__dirname, "musics", musicPath))
+    // );
   });
 });
 
