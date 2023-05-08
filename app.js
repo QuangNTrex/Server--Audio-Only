@@ -10,13 +10,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-async function convertToM4a(mp3FilePath, m4aFilePath) {
+async function convertToM4a(mp3File, m4aFile, next) {
   exec(
-    `ffmpeg -i ${__dirname.replace(/\\/g, "/") + `/musics/${musicInputFile}`} ${
-      __dirname.replace(/\\/g, "/") + `/musics/${musicOutputFile}`
+    `ffmpeg -i ${__dirname.replace(/\\/g, "/") + `/musics/${mp3File}`} ${
+      __dirname.replace(/\\/g, "/") + `/musics/${m4aFile}`
     }`,
     (err, std) => {
       console.log(err);
+      console.log("completed convert");
+      next();
     }
   );
 }
@@ -49,18 +51,17 @@ app.use("/musics/:musicPath", (req, res, next) => {
   });
 
   console.log("pipe");
-  stream.pipe(fs.createWriteStream(path.join(__dirname, "musics", musicPath)));
+  stream.pipe(
+    fs.createWriteStream(path.join(__dirname, "musics", musicId + ".mp3"))
+  );
 
   console.log("check on end");
   stream.on("end", () => {
     stream.destroy();
-    // if (format !== "mp3") {
-    //   convertToM4a(
-    //     path.join(__dirname, "musics", musicId + ".mp3"),
-    //     path.join(__dirname, "musics", musicPath)
-    //   );
-    //   console.log("after convert");
-    // }
+    if (format !== "mp3") {
+      convertToM4a(musicId + ".mp3", musicPath, next);
+      console.log("after convert");
+    }
 
     console.log("in next");
     console.log(__dirname);
@@ -68,7 +69,6 @@ app.use("/musics/:musicPath", (req, res, next) => {
       "is have file:",
       fs.existsSync(path.join(__dirname, "musics", musicPath))
     );
-    next();
   });
 });
 
