@@ -3,10 +3,8 @@ const ytdl = require("ytdl-core");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
-const mp3ToAac = require("mp3-to-aac").mp3ToAac;
 const ffmpeg = require("ffmpeg");
 const { exec } = require("child_process");
-var sox = require("sox");
 const app = express();
 
 app.use(cors());
