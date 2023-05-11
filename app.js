@@ -6,25 +6,13 @@ const path = require("path");
 const { exec } = require("child_process");
 const app = express();
 
-// const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-// (async () => {
-//   while (true === true) {
-//     const used = process.memoryUsage();
-//     for (let key in used) {
-//       console.log(
-//         `${key} ${Math.round((used[key] / 1024 / 1024) * 100) / 100} MB`
-//       );
-//     }
-//     await delay(10000);
-//   }
-// })();
-
 const mapCheck = new Map();
+const mapPending = new Map();
 
 app.use(cors());
 app.use(express.json());
 
-async function convertToM4a(mp3File, m4aFile, res, startTime) {
+function convertToM4a(mp3File, m4aFile, res, startTime) {
   exec(
     `ffmpeg -i ${__dirname.replace(/\\/g, "/") + `/musics/${mp3File}`} ${
       __dirname.replace(/\\/g, "/") + `/musics/${m4aFile}`
@@ -57,6 +45,15 @@ app.use("/music-check/:musicPath", (req, res, next) => {
   const musicId = req.params.musicPath.split(".")[0];
   const format = req.params.musicPath.split(".")[1];
   console.log(musicId);
+
+  if (format === "mp3")
+    return res.send({
+      result: {
+        time: (Date.now() - startTime) / 1000,
+        message: "in mp3, you can go to the url",
+        url: `https://audio-only.onrender.com/musics-mp3/${musicPath}`,
+      },
+    });
 
   if (mapCheck.has(musicPath))
     return res.send({
@@ -94,6 +91,31 @@ app.use("/music-check/:musicPath", (req, res, next) => {
           url: `https://audio-only.onrender.com/musics/${musicPath}`,
         },
       });
+  });
+});
+
+app.use("/music-mp3/:musicPath", (req, res, next) => {
+  const startTime = Date.now();
+  const musicPath = req.params.musicPath;
+  const musicId = req.params.musicPath.split(".")[0];
+  console.log(musicId);
+
+  const stream = ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
+    filter: "audioonly",
+    quality: "highestaudio",
+  });
+
+  res.set({
+    "Content-Type": "audio/mpeg",
+    "Transfer-Encoding": "chunked",
+  });
+
+  stream.pipe(res);
+  stream.on("data", () => {
+    console.log("data");
+  });
+  stream.on("end", () => {
+    console.log("end");
   });
 });
 
