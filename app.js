@@ -119,6 +119,32 @@ app.use("/music-mp3/:musicPath", (req, res, next) => {
   });
 });
 
+app.get("/music-mp4/:musicPath", (req, res) => {
+  const musicId = req.params.musicPath.split(".")[0];
+  console.log(musicId);
+
+  res.setHeader("Content-Type", "video/mp4");
+  res.setHeader("Content-Disposition", `inline; filename="${musicId}.mp4"`);
+
+  ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
+    format: "mp4",
+    quality: "lowest",
+  }).pipe(res);
+});
+
+app.get("/music-webm/:musicPath", (req, res) => {
+  const musicId = req.params.musicPath.split(".")[0];
+  console.log(musicId);
+
+  res.setHeader("Content-Type", "video/webm");
+  res.setHeader("Content-Disposition", `inline; filename="${musicId}.webm"`);
+
+  ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
+    format: "webm",
+    quality: "lowest",
+  }).pipe(res);
+});
+
 app.use("/musics", express.static(path.join(__dirname, "musics")));
 
 app.use("/test", (req, res, next) => {
