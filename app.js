@@ -107,7 +107,7 @@ app.use("/music-mp3/:musicPath", (req, res, next) => {
 
   res.set({
     "Content-Type": "audio/mpeg",
-    "Transfer-Encoding": "chunked",
+    "Content-Disposition": "inline",
   });
 
   stream.pipe(res);
