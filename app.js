@@ -101,19 +101,14 @@ app.use("/music-mp3/:musicPath", (req, res, next) => {
   console.log(musicId);
 
   const stream = ytdl(`https://www.youtube.com/watch?v=${musicId}`, {
-    filter: "audioonly",
     quality: "highestaudio",
   });
 
   res.set({
-    "Content-Type": "audio/mpeg",
     "Content-Disposition": "inline",
   });
 
   stream.pipe(res);
-  stream.on("data", () => {
-    console.log("data");
-  });
   stream.on("end", () => {
     console.log("end");
   });
