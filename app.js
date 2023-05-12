@@ -105,6 +105,7 @@ app.use("/music-mp3/:musicPath", (req, res, next) => {
   });
 
   res.set({
+    "Content-Type": "audio/acc",
     "Content-Disposition": "inline",
   });
 
